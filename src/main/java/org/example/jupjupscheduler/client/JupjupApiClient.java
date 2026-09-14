@@ -24,4 +24,18 @@ public class JupjupApiClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+
+    public void syncPerformanceAndSeats() {
+        restClient.post()
+                .uri("/api/internal/scheduler/performance-seat-sync")
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public void pollTickets() {
+        restClient.post()
+                .uri("/api/internal/scheduler/ticket-polling")
+                .retrieve()
+                .toBodilessEntity();
+    }
 }
