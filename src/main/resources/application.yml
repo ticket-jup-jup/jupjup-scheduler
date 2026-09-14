@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: jupjup-scheduler
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+jupjup:
+  api:
+    url: ${JUPJUP_API_URL}
+
+ticket:
+  api:
+    url: ${TICKET_API_URL}
