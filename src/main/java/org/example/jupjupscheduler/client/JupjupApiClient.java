@@ -38,4 +38,11 @@ public class JupjupApiClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+
+    public void expireReservations() {
+        restClient.post()
+                .uri("/api/internal/scheduler/reservations/expire")
+                .retrieve()
+                .toBodilessEntity();
+    }
 }

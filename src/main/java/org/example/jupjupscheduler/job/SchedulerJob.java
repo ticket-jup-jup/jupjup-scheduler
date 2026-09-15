@@ -51,9 +51,15 @@ public class SchedulerJob implements CommandLineRunner {
                 }
 
                 case "RESERVATION_EXPIRE" -> {
-                    log.info("예약 만료 처리 시작");
+                    log.info("티켓서버 예약 만료 처리 시작");
                     ticketServerClient.expireReservations();
-                    log.info("예약 만료 처리 성공");
+                    log.info("티켓서버 예약 만료 처리 성공");
+                }
+
+                case "RESERVATION_EXPIRE_JUPJUP" -> {
+                    log.info("줍줍서버 예약 만료 처리 시작");
+                    jupjupApiClient.expireReservations();
+                    log.info("줍줍서버 예약 만료 처리 성공");
                 }
 
                 default -> {
