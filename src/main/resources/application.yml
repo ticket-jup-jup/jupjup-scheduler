@@ -18,3 +18,8 @@ jupjup:
 ticket:
   api:
     url: ${TICKET_API_URL}
+
+logging:
+  level:
+    root: INFO
+    org.example.jupjupscheduler: INFO

@@ -23,59 +23,81 @@ public class SchedulerJob implements CommandLineRunner {
         String jobType = System.getenv("JOB_TYPE");
 
         if (jobType == null || jobType.isBlank()) {
-            log.error("JOB_TYPE 환경변수가 없습니다.");
+            log.error("scheduler_job_failure job=UNKNOWN status=FAILURE reason=JOB_TYPE_MISSING");
             shutdown(1);
             return;
         }
 
-        log.info("스케줄러 작업 시작 - JOB_TYPE={}", jobType);
+        long startTime = System.nanoTime();
+
+        log.info("scheduler_job_start job={} status=START", jobType);
 
         try {
-            switch (jobType) {
-                case "PROGRAM_SYNC" -> {
-                    log.info("프로그램 동기화 시작");
-                    jupjupApiClient.syncPrograms();
-                    log.info("프로그램 동기화 성공");
-                }
+            executeJob(jobType);
 
-                case "PERFORMANCE_SEAT_SYNC" -> {
-                    log.info("회차 및 좌석 동기화 시작");
-                    jupjupApiClient.syncPerformanceAndSeats();
-                    log.info("회차 및 좌석 동기화 성공");
-                }
+            long durationMs = getDurationMs(startTime);
 
-                case "TICKET_POLLING" -> {
-                    log.info("티켓 polling 시작");
-                    jupjupApiClient.pollTickets();
-                    log.info("티켓 polling 성공");
-                }
+            log.info("scheduler_job_success job={} status=SUCCESS duration_ms={}", jobType, durationMs);
 
-                case "RESERVATION_EXPIRE" -> {
-                    log.info("티켓서버 예약 만료 처리 시작");
-                    ticketServerClient.expireReservations();
-                    log.info("티켓서버 예약 만료 처리 성공");
-                }
-
-                case "RESERVATION_EXPIRE_JUPJUP" -> {
-                    log.info("줍줍서버 예약 만료 처리 시작");
-                    jupjupApiClient.expireReservations();
-                    log.info("줍줍서버 예약 만료 처리 성공");
-                }
-
-                default -> {
-                    log.error("알 수 없는 JOB_TYPE: {}", jobType);
-                    shutdown(1);
-                    return;
-                }
-            }
-
-            log.info("스케줄러 작업 종료 - JOB_TYPE={}", jobType);
             shutdown(0);
 
         } catch (Exception e) {
-            log.error("스케줄러 작업 실패 - JOB_TYPE={}", jobType, e);
+            long durationMs = getDurationMs(startTime);
+
+            log.error(
+                    "scheduler_job_failure job={} status=FAILURE duration_ms={} exception={} message={}",
+                    jobType,
+                    durationMs,
+                    e.getClass().getSimpleName(),
+                    e.getMessage(),
+                    e
+            );
+
             shutdown(1);
         }
+    }
+
+    private void executeJob(String jobType) {
+        switch (jobType) {
+            case "PROGRAM_SYNC" -> {
+                log.info("scheduler_task_start job=PROGRAM_SYNC");
+                jupjupApiClient.syncPrograms();
+                log.info("scheduler_task_success job=PROGRAM_SYNC");
+            }
+
+            case "PERFORMANCE_SEAT_SYNC" -> {
+                log.info("scheduler_task_start job=PERFORMANCE_SEAT_SYNC");
+                jupjupApiClient.syncPerformanceAndSeats();
+                log.info("scheduler_task_success job=PERFORMANCE_SEAT_SYNC");
+            }
+
+            case "TICKET_POLLING" -> {
+                log.info("scheduler_task_start job=TICKET_POLLING");
+                jupjupApiClient.pollTickets();
+                log.info("scheduler_task_success job=TICKET_POLLING");
+            }
+
+            case "RESERVATION_EXPIRE" -> {
+                log.info("scheduler_task_start job=RESERVATION_EXPIRE");
+                ticketServerClient.expireReservations();
+                log.info("scheduler_task_success job=RESERVATION_EXPIRE");
+            }
+
+            case "RESERVATION_EXPIRE_JUPJUP" -> {
+                log.info("scheduler_task_start job=RESERVATION_EXPIRE_JUPJUP");
+                jupjupApiClient.expireReservations();
+                log.info("scheduler_task_success job=RESERVATION_EXPIRE_JUPJUP");
+            }
+
+            default -> {
+                log.error("scheduler_job_failure job={} status=FAILURE reason=UNKNOWN_JOB_TYPE", jobType);
+                throw new IllegalArgumentException("알 수 없는 JOB_TYPE: " + jobType);
+            }
+        }
+    }
+
+    private long getDurationMs(long startTime) {
+        return (System.nanoTime() - startTime) / 1_000_000;
     }
 
     private void shutdown(int exitCode) {
